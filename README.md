@@ -170,8 +170,123 @@ Most healthcare documents cost less than $0.05 to format.
 
 ## 🐛 Troubleshooting
 
+### ⚠️ "Network error" or "CORS Error" (MOST COMMON)
+
+**Problem**: You're getting "Network error. Please check your internet connection" or CORS-related errors when trying to format documents.
+
+**Root Cause**: Browser security policies (CORS - Cross-Origin Resource Sharing) may block direct API calls to Anthropic from certain domains or configurations.
+
+**Diagnostic Steps**:
+1. Open browser console (Press F12, go to Console tab)
+2. Try formatting a document
+3. Look for errors mentioning "CORS", "fetch failed", or "blocked"
+
+**Solutions** (in order of ease):
+
+#### Solution 1: Use the Proxy Server (Recommended for Production)
+
+The repository includes a simple Node.js proxy server (`proxy-server.js`) that solves CORS issues.
+
+**Quick Start with Proxy**:
+
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Start the proxy server locally**:
+   ```bash
+   npm start
+   ```
+
+   Server runs on `http://localhost:3000`
+
+3. **Update index.html configuration**:
+   Open `index.html` and find the CONFIG object (around line 991), uncomment the PROXY_ENDPOINT:
+
+   ```javascript
+   const CONFIG = {
+       // ... other config
+       PROXY_ENDPOINT: 'http://localhost:3000/api/format',
+       // ... rest of config
+   };
+   ```
+
+4. **Reload your app** and try again!
+
+**Deploy Proxy to Production** (Choose one):
+
+**Option A: Deploy to Vercel** (Free, Recommended)
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy
+vercel
+
+# Follow prompts, copy the deployment URL
+# Update PROXY_ENDPOINT in index.html to your Vercel URL
+```
+
+**Option B: Deploy to Railway** (Free tier available)
+1. Create account at [railway.app](https://railway.app)
+2. Create new project from GitHub repo
+3. Railway auto-detects Node.js and deploys
+4. Copy the public URL
+5. Update PROXY_ENDPOINT in index.html
+
+**Option C: Deploy to Render** (Free tier available)
+1. Create account at [render.com](https://render.com)
+2. New Web Service → Connect your repo
+3. Build command: `npm install`
+4. Start command: `npm start`
+5. Copy the service URL
+6. Update PROXY_ENDPOINT in index.html
+
+#### Solution 2: Try a Different Browser
+Some browsers have different CORS policies. Try:
+- Chrome (usually most permissive for development)
+- Firefox Developer Edition
+- Edge
+
+#### Solution 3: Local Development with CORS Disabled (TEMPORARY ONLY)
+**WARNING**: Only for local testing, NOT for production!
+
+**Chrome (Mac)**:
+```bash
+open -na "Google Chrome" --args --user-data-dir=/tmp/chrome_dev --disable-web-security --disable-site-isolation-trials
+```
+
+**Chrome (Windows)**:
+```bash
+"C:\Program Files\Google\Chrome\Application\chrome.exe" --user-data-dir="C:\tmp\chrome_dev" --disable-web-security --disable-site-isolation-trials
+```
+
+**Chrome (Linux)**:
+```bash
+google-chrome --user-data-dir=/tmp/chrome_dev --disable-web-security --disable-site-isolation-trials
+```
+
+---
+
 ### "API key not configured"
 **Solution**: Click "⚙️ API Settings" and add your Anthropic API key
+
+---
+
+### "Invalid API key"
+**Causes**:
+- API key copied incorrectly
+- Extra spaces before/after the key
+- Using an expired or revoked key
+
+**Solution**:
+1. Go to [Anthropic Console](https://console.anthropic.com/)
+2. Generate a new API key
+3. Copy the ENTIRE key (should start with `sk-ant-`)
+4. Paste into Settings (make sure no extra spaces)
+
+---
 
 ### "Failed to extract text from document"
 **Possible causes**:
@@ -181,14 +296,40 @@ Most healthcare documents cost less than $0.05 to format.
 
 **Solution**: Try converting to plain text first, or use OCR for scanned PDFs
 
+---
+
 ### "Rate limit exceeded"
 **Solution**: Wait 30-60 seconds before trying again. Consider upgrading your API plan for higher limits.
+
+---
 
 ### PDF extraction fails
 **Solution**: Some PDFs are image-based and don't contain extractable text. Use an OCR tool first, or re-save the PDF with text.
 
+---
+
 ### File too large error
 **Solution**: The maximum file size is 10MB. Split large documents or compress the file.
+
+---
+
+### Browser Console Shows Errors
+**How to check**:
+1. Press F12 (or Cmd+Option+I on Mac)
+2. Go to "Console" tab
+3. Look for red error messages
+4. Share these in GitHub issues for help
+
+---
+
+### Still Having Issues?
+1. Check browser console (F12) for detailed error messages
+2. Verify your internet connection
+3. Try the proxy server solution above
+4. Create an issue on GitHub with:
+   - Error message from console
+   - Browser and version
+   - Deployment method (local, Netlify, GitHub Pages, etc.)
 
 ## 📊 Features Checklist
 

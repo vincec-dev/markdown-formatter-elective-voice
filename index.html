@@ -834,6 +834,14 @@
                 </div>
             </div>
 
+            <div class="alert alert-warning show" style="margin-bottom: 20px;">
+                <span>⚠️</span>
+                <div>
+                    <strong>Browser Limitations</strong><br>
+                    Direct browser API calls may be blocked by CORS policies. If you experience network errors, open browser console (F12) for details. For production use, consider a backend proxy.
+                </div>
+            </div>
+
             <div class="form-group">
                 <label for="apiKeyInput">Anthropic API Key <span class="required">*</span></label>
                 <input type="password" id="apiKeyInput" placeholder="sk-ant-api...">
@@ -989,6 +997,11 @@
                 'application/msword': '.doc'
             },
             API_ENDPOINT: 'https://api.anthropic.com/v1/messages',
+            // OPTIONAL: Use a proxy server to avoid CORS issues
+            // Uncomment and set your proxy URL if needed:
+            // PROXY_ENDPOINT: 'http://localhost:3000/api/format',
+            // Or for deployed proxy: 'https://your-proxy.vercel.app/api/format'
+            PROXY_ENDPOINT: null,
             MODEL: 'claude-sonnet-4-20250514',
             MAX_TOKENS: 4000,
             SYSTEM_PROMPT: `You are a knowledge base formatter for AI voice agents in healthcare. Transform raw documents into clean, structured markdown optimized for voice AI retrieval.
@@ -1228,26 +1241,61 @@ Document Text:
 ${text}`;
 
             try {
-                const response = await fetch(CONFIG.API_ENDPOINT, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-api-key': apiKey,
-                        'anthropic-version': '2023-06-01'
-                    },
-                    body: JSON.stringify({
-                        model: CONFIG.MODEL,
-                        max_tokens: CONFIG.MAX_TOKENS,
-                        system: CONFIG.SYSTEM_PROMPT,
-                        messages: [{
-                            role: 'user',
-                            content: userPrompt
-                        }]
-                    })
-                });
+                // Use proxy if configured, otherwise direct API call
+                const useProxy = CONFIG.PROXY_ENDPOINT !== null;
+                const endpoint = useProxy ? CONFIG.PROXY_ENDPOINT : CONFIG.API_ENDPOINT;
+
+                console.log('Making API request to:', endpoint);
+                console.log('Using proxy:', useProxy);
+                console.log('Using model:', CONFIG.MODEL);
+
+                let requestOptions;
+
+                if (useProxy) {
+                    // Proxy request format
+                    requestOptions = {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            apiKey: apiKey,
+                            text: text,
+                            practiceName: practiceName,
+                            documentType: documentType,
+                            systemPrompt: CONFIG.SYSTEM_PROMPT,
+                            model: CONFIG.MODEL,
+                            maxTokens: CONFIG.MAX_TOKENS
+                        })
+                    };
+                } else {
+                    // Direct API request format
+                    requestOptions = {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-api-key': apiKey,
+                            'anthropic-version': '2023-06-01'
+                        },
+                        body: JSON.stringify({
+                            model: CONFIG.MODEL,
+                            max_tokens: CONFIG.MAX_TOKENS,
+                            system: CONFIG.SYSTEM_PROMPT,
+                            messages: [{
+                                role: 'user',
+                                content: userPrompt
+                            }]
+                        })
+                    };
+                }
+
+                const response = await fetch(endpoint, requestOptions);
+
+                console.log('Response status:', response.status);
 
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
+                    console.error('API error response:', errorData);
 
                     if (response.status === 401) {
                         throw new Error('Invalid API key. Please check your API key in Settings.');
@@ -1263,14 +1311,23 @@ ${text}`;
                 const data = await response.json();
 
                 if (!data.content || !data.content[0] || !data.content[0].text) {
+                    console.error('Unexpected API response:', data);
                     throw new Error('Unexpected API response format');
                 }
 
                 return data.content[0].text;
             } catch (error) {
-                if (error.message.includes('Failed to fetch')) {
-                    throw new Error('Network error. Please check your internet connection.');
+                console.error('Fetch error:', error);
+
+                // Check for specific error types
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    throw new Error('CORS or Network Error: Unable to connect to Anthropic API. This may be due to:\n\n1. CORS restrictions (browser security)\n2. Network connectivity issues\n3. API endpoint blocking browser requests\n\nSolution: Check browser console (F12) for details, or set up a proxy server (see proxy-server.js in the repository).');
                 }
+
+                if (error.message.includes('Failed to fetch')) {
+                    throw new Error('Network Error: Unable to reach Anthropic API.\n\nPossible causes:\n- No internet connection\n- API endpoint unreachable\n- CORS policy blocking request\n\nSolution: Try using the included proxy server (see README for instructions).');
+                }
+
                 throw error;
             }
         }
