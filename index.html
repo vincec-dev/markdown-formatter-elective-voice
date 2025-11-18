@@ -1,0 +1,1671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthcare Document Formatter - AI Voice Optimization</title>
+
+    <!-- External Libraries via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ==========================================
+           GLOBAL STYLES & RESET
+           ========================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #4CAF50;
+            --primary-dark: #45a049;
+            --secondary-color: #2196F3;
+            --secondary-dark: #1976D2;
+            --background: #f5f5f5;
+            --card-bg: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --border-color: #e0e0e0;
+            --error-color: #f44336;
+            --success-color: #4CAF50;
+            --warning-color: #ff9800;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.15);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* ==========================================
+           LAYOUT & CONTAINER
+           ========================================== */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ==========================================
+           HEADER
+           ========================================== */
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 12px;
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            font-weight: 300;
+            opacity: 0.95;
+        }
+
+        .settings-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .settings-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* ==========================================
+           CARDS
+           ========================================== */
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* ==========================================
+           FORM ELEMENTS
+           ========================================== */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        label .required {
+            color: var(--error-color);
+            margin-left: 3px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: var(--transition);
+            background: white;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .file-upload-wrapper {
+            position: relative;
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            transition: var(--transition);
+            cursor: pointer;
+            background: #fafafa;
+        }
+
+        .file-upload-wrapper:hover {
+            border-color: var(--primary-color);
+            background: #f0f9f0;
+        }
+
+        .file-upload-wrapper.drag-over {
+            border-color: var(--primary-color);
+            background: #e8f5e9;
+        }
+
+        input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            cursor: pointer;
+        }
+
+        .file-upload-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .file-info {
+            margin-top: 15px;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: var(--secondary-color);
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        /* ==========================================
+           BUTTONS
+           ========================================== */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--secondary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .btn-outline:hover:not(:disabled) {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-block {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        /* ==========================================
+           LOADING & PROGRESS
+           ========================================== */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 400px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .spinner {
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            width: 0%;
+            transition: width 0.3s ease;
+            animation: progress-shimmer 1.5s infinite;
+        }
+
+        @keyframes progress-shimmer {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        /* ==========================================
+           ALERTS & MESSAGES
+           ========================================== */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            animation: slideDown 0.3s ease;
+        }
+
+        .alert.show {
+            display: flex;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .alert-error {
+            background: #ffebee;
+            border-left: 4px solid var(--error-color);
+            color: #c62828;
+        }
+
+        .alert-success {
+            background: #e8f5e9;
+            border-left: 4px solid var(--success-color);
+            color: #2e7d32;
+        }
+
+        .alert-warning {
+            background: #fff3e0;
+            border-left: 4px solid var(--warning-color);
+            color: #ef6c00;
+        }
+
+        .alert-info {
+            background: #e3f2fd;
+            border-left: 4px solid var(--secondary-color);
+            color: #1565c0;
+        }
+
+        /* ==========================================
+           MODAL
+           ========================================== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(3px);
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: var(--shadow-lg);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .close-btn:hover {
+            background: var(--border-color);
+        }
+
+        /* ==========================================
+           PREVIEW SECTION
+           ========================================== */
+        .preview-section {
+            display: none;
+        }
+
+        .preview-section.show {
+            display: block;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            color: var(--text-secondary);
+            border-bottom: 3px solid transparent;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .tab:hover {
+            color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .preview-rendered {
+            max-height: 600px;
+            overflow-y: auto;
+            padding: 20px;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .preview-raw {
+            max-height: 600px;
+            overflow-y: auto;
+            padding: 0;
+        }
+
+        .preview-raw pre {
+            margin: 0;
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        .preview-raw code {
+            color: #d4d4d4;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* Markdown Preview Styling */
+        .preview-rendered h1 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .preview-rendered h2 {
+            font-size: 1.6rem;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            color: var(--secondary-color);
+        }
+
+        .preview-rendered h3 {
+            font-size: 1.3rem;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .preview-rendered ul,
+        .preview-rendered ol {
+            margin-left: 25px;
+            margin-bottom: 15px;
+        }
+
+        .preview-rendered li {
+            margin-bottom: 8px;
+        }
+
+        .preview-rendered p {
+            margin-bottom: 15px;
+        }
+
+        .preview-rendered strong {
+            color: var(--primary-color);
+        }
+
+        .preview-rendered code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+        }
+
+        .preview-rendered pre {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+
+        /* Document Stats */
+        .doc-stats {
+            display: flex;
+            gap: 20px;
+            padding: 15px;
+            background: var(--background);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        /* ==========================================
+           FOOTER
+           ========================================== */
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* ==========================================
+           RESPONSIVE DESIGN
+           ========================================== */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.6rem;
+            }
+
+            header p {
+                font-size: 0.95rem;
+            }
+
+            .settings-btn {
+                position: static;
+                display: block;
+                margin: 15px auto 0;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .btn-group .btn {
+                width: 100%;
+            }
+
+            .tabs {
+                flex-direction: column;
+                border-bottom: none;
+            }
+
+            .tab {
+                border-bottom: none;
+                border-left: 3px solid transparent;
+            }
+
+            .tab.active {
+                border-left-color: var(--primary-color);
+                background: var(--background);
+            }
+        }
+
+        /* ==========================================
+           UTILITY CLASSES
+           ========================================== */
+        .hidden {
+            display: none !important;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-secondary {
+            color: var(--text-secondary);
+        }
+
+        .mt-20 {
+            margin-top: 20px;
+        }
+
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+
+        /* Success Checkmark Animation */
+        .success-checkmark {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+        }
+
+        .check-icon {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            border-radius: 50%;
+            box-sizing: content-box;
+            border: 4px solid var(--success-color);
+        }
+
+        .check-icon::before {
+            top: 3px;
+            left: -2px;
+            width: 30px;
+            transform-origin: 100% 50%;
+            border-radius: 100px 0 0 100px;
+        }
+
+        .check-icon::after {
+            top: 0;
+            left: 30px;
+            width: 60px;
+            transform-origin: 0 50%;
+            border-radius: 0 100px 100px 0;
+            animation: rotate-circle 4.25s ease-in;
+        }
+
+        .icon-line {
+            height: 5px;
+            background-color: var(--success-color);
+            display: block;
+            border-radius: 2px;
+            position: absolute;
+            z-index: 10;
+        }
+
+        .icon-line.line-tip {
+            top: 46px;
+            left: 14px;
+            width: 25px;
+            transform: rotate(45deg);
+            animation: icon-line-tip 0.75s;
+        }
+
+        .icon-line.line-long {
+            top: 38px;
+            right: 8px;
+            width: 47px;
+            transform: rotate(-45deg);
+            animation: icon-line-long 0.75s;
+        }
+
+        @keyframes icon-line-tip {
+            0% { width: 0; left: 1px; top: 19px; }
+            54% { width: 0; left: 1px; top: 19px; }
+            70% { width: 50px; left: -8px; top: 37px; }
+            84% { width: 17px; left: 21px; top: 48px; }
+            100% { width: 25px; left: 14px; top: 45px; }
+        }
+
+        @keyframes icon-line-long {
+            0% { width: 0; right: 46px; top: 54px; }
+            65% { width: 0; right: 46px; top: 54px; }
+            84% { width: 55px; right: 0px; top: 35px; }
+            100% { width: 47px; right: 8px; top: 38px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h3 id="loadingTitle">Processing Document...</h3>
+            <p id="loadingMessage">Please wait while we format your document</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">API Settings</h2>
+                <button class="close-btn" onclick="closeSettings()">&times;</button>
+            </div>
+
+            <div class="alert alert-info show">
+                <span>🔑</span>
+                <div>
+                    <strong>API Key Required</strong><br>
+                    Get your API key from <a href="https://console.anthropic.com/" target="_blank">Anthropic Console</a>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="apiKeyInput">Anthropic API Key <span class="required">*</span></label>
+                <input type="password" id="apiKeyInput" placeholder="sk-ant-api...">
+                <small style="color: var(--text-secondary); display: block; margin-top: 5px;">
+                    ⚠️ Stored locally in your browser. Never shared.
+                </small>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="saveApiKey()">Save API Key</button>
+                <button class="btn btn-outline" onclick="clearApiKey()">Clear Key</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <header style="position: relative;">
+            <button class="settings-btn" onclick="openSettings()">⚙️ API Settings</button>
+            <h1>Healthcare Document Formatter</h1>
+            <p>Transform messy documents into clean, AI-optimized markdown</p>
+        </header>
+
+        <!-- Alert Container -->
+        <div id="alertContainer"></div>
+
+        <!-- Upload Form Card -->
+        <div class="card" id="uploadCard">
+            <h2 class="card-title">
+                <span>📄</span>
+                Document Upload
+            </h2>
+
+            <form id="uploadForm">
+                <div class="form-group">
+                    <label for="practiceName">Practice/Business Name <span class="required">*</span></label>
+                    <input type="text" id="practiceName" required placeholder="e.g., Bright Smile Dental">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address <span class="required">*</span></label>
+                    <input type="email" id="email" required placeholder="you@example.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="documentType">Document Type <span class="required">*</span></label>
+                    <select id="documentType" required>
+                        <option value="">Select document type...</option>
+                        <option value="Services & Procedures">Services & Procedures</option>
+                        <option value="Pricing Information">Pricing Information</option>
+                        <option value="Pre-Procedure Instructions">Pre-Procedure Instructions</option>
+                        <option value="Post-Procedure Care">Post-Procedure Care</option>
+                        <option value="FAQs">FAQs</option>
+                        <option value="Policies">Policies</option>
+                        <option value="General Information">General Information</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Upload Document <span class="required">*</span></label>
+                    <div class="file-upload-wrapper" id="fileUploadWrapper">
+                        <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.txt" required>
+                        <div class="file-upload-icon">📎</div>
+                        <p><strong>Click to upload</strong> or drag and drop</p>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 10px;">
+                            Supported: PDF, Word (.doc, .docx), TXT • Max 10MB
+                        </p>
+                    </div>
+                    <div class="file-info" id="fileInfo"></div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block" id="submitBtn">
+                    <span>🚀</span>
+                    Format Document
+                </button>
+            </form>
+        </div>
+
+        <!-- Preview Card -->
+        <div class="card preview-section" id="previewCard">
+            <h2 class="card-title">
+                <span>✨</span>
+                Formatted Document
+            </h2>
+
+            <div class="doc-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Characters</span>
+                    <span class="stat-value" id="charCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Words</span>
+                    <span class="stat-value" id="wordCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Lines</span>
+                    <span class="stat-value" id="lineCount">0</span>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" data-tab="formatted">📖 Formatted Preview</button>
+                <button class="tab" data-tab="raw">💻 Raw Markdown</button>
+            </div>
+
+            <div class="tab-content active" id="formatted">
+                <div class="preview-rendered" id="previewRendered"></div>
+            </div>
+
+            <div class="tab-content" id="raw">
+                <div class="preview-raw">
+                    <pre><code id="previewRaw"></code></pre>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="downloadMarkdown()">
+                    <span>⬇️</span>
+                    Download Markdown
+                </button>
+                <button class="btn btn-secondary" onclick="copyToClipboard()">
+                    <span>📋</span>
+                    Copy to Clipboard
+                </button>
+                <button class="btn btn-outline" onclick="resetForm()">
+                    <span>🔄</span>
+                    Upload Another
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>Powered by <a href="https://www.anthropic.com/" target="_blank">Anthropic Claude</a> •
+            Built for Healthcare Professionals</p>
+            <p style="margin-top: 10px; font-size: 0.85rem;">
+                Your documents are processed securely. API keys stored locally only.
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        /* ==========================================
+           CONFIGURATION & CONSTANTS
+           ========================================== */
+        const CONFIG = {
+            MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
+            ALLOWED_TYPES: {
+                'text/plain': '.txt',
+                'application/pdf': '.pdf',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+                'application/msword': '.doc'
+            },
+            API_ENDPOINT: 'https://api.anthropic.com/v1/messages',
+            MODEL: 'claude-sonnet-4-20250514',
+            MAX_TOKENS: 4000,
+            SYSTEM_PROMPT: `You are a knowledge base formatter for AI voice agents in healthcare. Transform raw documents into clean, structured markdown optimized for voice AI retrieval.
+
+FORMATTING RULES:
+1. STRUCTURE:
+   - Use clear hierarchical headings (##, ###)
+   - Start with document title as # heading
+   - Add "Quick Facts" section at top with 3-5 most important pieces of information
+   - Organize into logical sections
+
+2. CONTENT:
+   - Convert dense paragraphs into concise bullet points
+   - Extract FAQs into clean Q&A format
+   - Remove ALL marketing fluff and sales language
+   - Keep only factual, actionable information
+   - Preserve medical accuracy - DO NOT summarize medical instructions
+   - Use simple, clear language (8th grade reading level)
+   - Include all contact info, hours, pricing
+
+3. VOICE AI OPTIMIZATION:
+   - Easy to retrieve and speak aloud
+   - Self-contained sections
+   - Consistent formatting
+   - Avoid long, complex sentences
+
+4. KEEP:
+   - Practice information, services, procedures, pricing, hours, contact info
+   - Medical instructions, pre/post-procedure care
+   - FAQs, policies
+
+5. REMOVE:
+   - Marketing slogans, excessive punctuation
+   - Redundant information, staff bios (unless essential)
+   - Reviews/testimonials, social media handles
+   - Special offers (unless pricing-related)
+
+OUTPUT FORMAT EXAMPLE:
+# [Document Title]
+
+## Quick Facts
+- Key fact 1
+- Key fact 2
+- Key fact 3
+
+## [Section Name]
+Content here...
+
+## Frequently Asked Questions
+**Q: Question here?**
+A: Answer here.
+
+Return ONLY the formatted markdown with no additional commentary.`
+        };
+
+        // State management
+        let formattedMarkdown = '';
+        let currentFileName = '';
+
+        /* ==========================================
+           INITIALIZATION
+           ========================================== */
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        function initializeApp() {
+            // Configure PDF.js worker
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+            // Load saved API key
+            const savedKey = localStorage.getItem('anthropic_api_key');
+            if (savedKey) {
+                document.getElementById('apiKeyInput').value = savedKey;
+            }
+
+            // Setup event listeners
+            setupEventListeners();
+
+            // Check for unsaved work
+            window.addEventListener('beforeunload', handleBeforeUnload);
+        }
+
+        function setupEventListeners() {
+            // Form submission
+            document.getElementById('uploadForm').addEventListener('submit', handleFormSubmit);
+
+            // File upload
+            const fileInput = document.getElementById('fileInput');
+            const fileWrapper = document.getElementById('fileUploadWrapper');
+
+            fileInput.addEventListener('change', handleFileSelect);
+
+            // Drag and drop
+            fileWrapper.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                fileWrapper.classList.add('drag-over');
+            });
+
+            fileWrapper.addEventListener('dragleave', () => {
+                fileWrapper.classList.remove('drag-over');
+            });
+
+            fileWrapper.addEventListener('drop', (e) => {
+                e.preventDefault();
+                fileWrapper.classList.remove('drag-over');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    handleFileSelect();
+                }
+            });
+
+            // Tab switching
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+            });
+        }
+
+        /* ==========================================
+           FILE HANDLING
+           ========================================== */
+        function handleFileSelect() {
+            const fileInput = document.getElementById('fileInput');
+            const fileInfo = document.getElementById('fileInfo');
+            const file = fileInput.files[0];
+
+            if (!file) return;
+
+            // Validate file size
+            if (file.size > CONFIG.MAX_FILE_SIZE) {
+                showAlert('error', `File too large! Maximum size is ${CONFIG.MAX_FILE_SIZE / 1024 / 1024}MB`);
+                fileInput.value = '';
+                return;
+            }
+
+            // Validate file type
+            if (!CONFIG.ALLOWED_TYPES[file.type]) {
+                showAlert('error', 'Unsupported file type! Please upload PDF, Word, or TXT files.');
+                fileInput.value = '';
+                return;
+            }
+
+            // Show file info
+            currentFileName = file.name;
+            fileInfo.innerHTML = `
+                <strong>Selected:</strong> ${file.name}
+                (${(file.size / 1024).toFixed(2)} KB)
+            `;
+            fileInfo.classList.add('show');
+        }
+
+        async function extractTextFromFile(file) {
+            const fileType = file.type;
+
+            try {
+                if (fileType === 'text/plain') {
+                    return await extractTextFromTxt(file);
+                } else if (fileType === 'application/pdf') {
+                    return await extractTextFromPdf(file);
+                } else if (fileType.includes('wordprocessingml') || fileType === 'application/msword') {
+                    return await extractTextFromWord(file);
+                } else {
+                    throw new Error('Unsupported file type');
+                }
+            } catch (error) {
+                console.error('Text extraction error:', error);
+                throw new Error(`Failed to extract text: ${error.message}`);
+            }
+        }
+
+        async function extractTextFromTxt(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = (e) => reject(new Error('Failed to read text file'));
+                reader.readAsText(file);
+            });
+        }
+
+        async function extractTextFromPdf(file) {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    let fullText = '';
+
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const textContent = await page.getTextContent();
+                        const pageText = textContent.items.map(item => item.str).join(' ');
+                        fullText += pageText + '\n\n';
+                    }
+
+                    if (!fullText.trim()) {
+                        reject(new Error('No text found in PDF. The file might be image-based.'));
+                    } else {
+                        resolve(fullText);
+                    }
+                } catch (error) {
+                    reject(new Error(`PDF extraction failed: ${error.message}`));
+                }
+            });
+        }
+
+        async function extractTextFromWord(file) {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const result = await mammoth.extractRawText({ arrayBuffer });
+
+                    if (!result.value.trim()) {
+                        reject(new Error('No text found in Word document'));
+                    } else {
+                        resolve(result.value);
+                    }
+                } catch (error) {
+                    reject(new Error(`Word extraction failed: ${error.message}`));
+                }
+            });
+        }
+
+        /* ==========================================
+           CLAUDE API INTEGRATION
+           ========================================== */
+        async function formatWithClaude(text, practiceName, documentType) {
+            const apiKey = localStorage.getItem('anthropic_api_key');
+
+            if (!apiKey) {
+                throw new Error('API key not configured. Please add your Anthropic API key in Settings.');
+            }
+
+            const userPrompt = `Practice Name: ${practiceName}
+Document Type: ${documentType}
+
+Document Text:
+${text}`;
+
+            try {
+                const response = await fetch(CONFIG.API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': apiKey,
+                        'anthropic-version': '2023-06-01'
+                    },
+                    body: JSON.stringify({
+                        model: CONFIG.MODEL,
+                        max_tokens: CONFIG.MAX_TOKENS,
+                        system: CONFIG.SYSTEM_PROMPT,
+                        messages: [{
+                            role: 'user',
+                            content: userPrompt
+                        }]
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+
+                    if (response.status === 401) {
+                        throw new Error('Invalid API key. Please check your API key in Settings.');
+                    } else if (response.status === 429) {
+                        throw new Error('Rate limit exceeded. Please try again in a moment.');
+                    } else if (response.status === 400) {
+                        throw new Error(errorData.error?.message || 'Bad request. Please check your input.');
+                    } else {
+                        throw new Error(errorData.error?.message || `API error: ${response.status}`);
+                    }
+                }
+
+                const data = await response.json();
+
+                if (!data.content || !data.content[0] || !data.content[0].text) {
+                    throw new Error('Unexpected API response format');
+                }
+
+                return data.content[0].text;
+            } catch (error) {
+                if (error.message.includes('Failed to fetch')) {
+                    throw new Error('Network error. Please check your internet connection.');
+                }
+                throw error;
+            }
+        }
+
+        /* ==========================================
+           FORM SUBMISSION
+           ========================================== */
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+
+            const practiceName = document.getElementById('practiceName').value;
+            const email = document.getElementById('email').value;
+            const documentType = document.getElementById('documentType').value;
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showAlert('error', 'Please select a file to upload');
+                return;
+            }
+
+            // Disable submit button
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+
+            try {
+                // Show loading overlay
+                showLoading('Extracting text from document...', 30);
+
+                // Extract text from file
+                const extractedText = await extractTextFromFile(file);
+
+                if (!extractedText || extractedText.trim().length < 50) {
+                    throw new Error('Document appears to be empty or too short');
+                }
+
+                // Format with Claude
+                showLoading('Formatting with Claude AI...', 70);
+                const formatted = await formatWithClaude(extractedText, practiceName, documentType);
+
+                // Success!
+                showLoading('Complete!', 100);
+
+                setTimeout(() => {
+                    hideLoading();
+                    displayFormattedDocument(formatted);
+                    showAlert('success', '✨ Document formatted successfully!');
+                }, 500);
+
+            } catch (error) {
+                hideLoading();
+                showAlert('error', error.message);
+                submitBtn.disabled = false;
+            }
+        }
+
+        /* ==========================================
+           PREVIEW & DISPLAY
+           ========================================== */
+        function displayFormattedDocument(markdown) {
+            formattedMarkdown = markdown;
+
+            // Render formatted preview
+            const renderedHtml = marked.parse(markdown);
+            document.getElementById('previewRendered').innerHTML = renderedHtml;
+
+            // Show raw markdown
+            document.getElementById('previewRaw').textContent = markdown;
+
+            // Calculate stats
+            const charCount = markdown.length;
+            const wordCount = markdown.trim().split(/\s+/).length;
+            const lineCount = markdown.split('\n').length;
+
+            document.getElementById('charCount').textContent = charCount.toLocaleString();
+            document.getElementById('wordCount').textContent = wordCount.toLocaleString();
+            document.getElementById('lineCount').textContent = lineCount.toLocaleString();
+
+            // Show preview section
+            document.getElementById('previewCard').classList.add('show');
+
+            // Scroll to preview
+            document.getElementById('previewCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.tab === tabName) {
+                    tab.classList.add('active');
+                }
+            });
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        /* ==========================================
+           ACTIONS
+           ========================================== */
+        function downloadMarkdown() {
+            if (!formattedMarkdown) return;
+
+            const practiceName = document.getElementById('practiceName').value;
+            const documentType = document.getElementById('documentType').value;
+            const fileName = `${practiceName.replace(/\s+/g, '_')}_${documentType.replace(/\s+/g, '_')}.md`;
+
+            const blob = new Blob([formattedMarkdown], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showAlert('success', '📥 Markdown file downloaded!');
+        }
+
+        async function copyToClipboard() {
+            if (!formattedMarkdown) return;
+
+            try {
+                await navigator.clipboard.writeText(formattedMarkdown);
+                showAlert('success', '📋 Copied to clipboard!');
+            } catch (error) {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = formattedMarkdown;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showAlert('success', '📋 Copied to clipboard!');
+            }
+        }
+
+        function resetForm() {
+            if (formattedMarkdown && !confirm('Are you sure? Any unsaved changes will be lost.')) {
+                return;
+            }
+
+            // Reset form
+            document.getElementById('uploadForm').reset();
+            document.getElementById('fileInfo').classList.remove('show');
+            document.getElementById('submitBtn').disabled = false;
+
+            // Hide preview
+            document.getElementById('previewCard').classList.remove('show');
+
+            // Clear state
+            formattedMarkdown = '';
+            currentFileName = '';
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /* ==========================================
+           API KEY MANAGEMENT
+           ========================================== */
+        function openSettings() {
+            document.getElementById('settingsModal').classList.add('show');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('show');
+        }
+
+        function saveApiKey() {
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+
+            if (!apiKey) {
+                showAlert('error', 'Please enter an API key');
+                return;
+            }
+
+            if (!apiKey.startsWith('sk-ant-')) {
+                showAlert('warning', 'API key format looks incorrect. Make sure you copied it correctly.');
+            }
+
+            localStorage.setItem('anthropic_api_key', apiKey);
+            showAlert('success', '✅ API key saved successfully!');
+            closeSettings();
+        }
+
+        function clearApiKey() {
+            if (!confirm('Are you sure you want to clear your API key?')) {
+                return;
+            }
+
+            localStorage.removeItem('anthropic_api_key');
+            document.getElementById('apiKeyInput').value = '';
+            showAlert('success', 'API key cleared');
+        }
+
+        /* ==========================================
+           UI HELPERS
+           ========================================== */
+        function showLoading(message, progress = 0) {
+            document.getElementById('loadingTitle').textContent = message;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('loadingOverlay').classList.add('show');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('show');
+        }
+
+        function showAlert(type, message) {
+            const container = document.getElementById('alertContainer');
+
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} show`;
+
+            const icons = {
+                error: '❌',
+                success: '✅',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+
+            alert.innerHTML = `
+                <span>${icons[type]}</span>
+                <div>${message}</div>
+            `;
+
+            container.innerHTML = '';
+            container.appendChild(alert);
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                alert.classList.remove('show');
+                setTimeout(() => alert.remove(), 300);
+            }, 5000);
+
+            // Scroll to alert
+            alert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function handleBeforeUnload(e) {
+            if (formattedMarkdown && !document.getElementById('previewCard').classList.contains('hidden')) {
+                e.preventDefault();
+                e.returnValue = '';
+                return '';
+            }
+        }
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            const modal = document.getElementById('settingsModal');
+            if (e.target === modal) {
+                closeSettings();
+            }
+        });
+    </script>
+
+    <!--
+    ==========================================
+    HEALTHCARE DOCUMENT FORMATTER
+    ==========================================
+
+    ## SETUP INSTRUCTIONS
+
+    1. GET YOUR ANTHROPIC API KEY:
+       - Visit https://console.anthropic.com/
+       - Sign up or log in
+       - Go to API Keys section
+       - Create a new API key
+       - Copy the key (starts with 'sk-ant-')
+
+    2. CONFIGURE THE APPLICATION:
+       - Click "⚙️ API Settings" button
+       - Paste your API key
+       - Click "Save API Key"
+       - Your key is stored securely in browser localStorage
+
+    3. USAGE:
+       - Fill in practice name and email
+       - Select document type
+       - Upload your document (PDF, Word, or TXT)
+       - Click "Format Document"
+       - Preview the formatted markdown
+       - Download or copy the result
+
+    ## HOSTING OPTIONS
+
+    ### Option 1: GitHub Pages (Free)
+    1. Create a new GitHub repository
+    2. Upload this index.html file
+    3. Go to Settings > Pages
+    4. Select branch and save
+    5. Your app will be live at: https://username.github.io/repo-name/
+
+    ### Option 2: Netlify (Free)
+    1. Create account at netlify.com
+    2. Drag and drop this file
+    3. Instant deployment!
+
+    ### Option 3: Local Use
+    1. Save this file as index.html
+    2. Double-click to open in browser
+    3. Works offline (except Claude API calls)
+
+    ## CUSTOMIZATION
+
+    ### Change Colors:
+    Edit the CSS variables in :root { ... }
+    - --primary-color: Main action color
+    - --secondary-color: Secondary elements
+    - --background: Page background
+
+    ### Modify Claude Prompt:
+    Edit CONFIG.SYSTEM_PROMPT to customize formatting behavior
+
+    ### Add Document Types:
+    Add more options to the documentType <select> dropdown
+
+    ## SECURITY NOTES
+
+    - API keys are stored in browser localStorage only
+    - Keys never leave your browser except to call Claude API
+    - For production use, consider a backend proxy
+    - Don't commit API keys to version control
+
+    ## TROUBLESHOOTING
+
+    Problem: "API key not configured"
+    Solution: Click settings and add your API key
+
+    Problem: "Failed to extract text"
+    Solution: Ensure file is not corrupted or image-based PDF
+
+    Problem: "Rate limit exceeded"
+    Solution: Wait a few moments before trying again
+
+    Problem: PDF extraction fails
+    Solution: Some PDFs are image-based - try converting to text first
+
+    ## FEATURES
+
+    ✅ Upload PDF, Word (.docx), or TXT files
+    ✅ Extract text automatically
+    ✅ Format with Claude AI
+    ✅ Live preview (formatted + raw)
+    ✅ Download as .md file
+    ✅ Copy to clipboard
+    ✅ Responsive design
+    ✅ Error handling
+    ✅ Progress indicators
+    ✅ Document statistics
+
+    ## DEPENDENCIES (via CDN)
+
+    - PDF.js 3.11.174 - PDF text extraction
+    - Mammoth.js 1.6.0 - Word document conversion
+    - Marked.js 9.1.6 - Markdown rendering
+    - Highlight.js 11.9.0 - Code syntax highlighting
+    - Google Fonts - Inter font family
+
+    ## BROWSER COMPATIBILITY
+
+    - Chrome/Edge: ✅ Full support
+    - Firefox: ✅ Full support
+    - Safari: ✅ Full support
+    - Mobile browsers: ✅ Responsive design
+
+    ## COST ESTIMATION
+
+    Claude API pricing (as of 2024):
+    - Input: ~$3 per million tokens
+    - Output: ~$15 per million tokens
+    - Average document: ~$0.01 - $0.05
+    - 100 documents: ~$1-5
+
+    ## SUPPORT
+
+    For issues with:
+    - This application: Check browser console for errors
+    - Claude API: Visit https://docs.anthropic.com/
+    - File extraction: Verify file format compatibility
+
+    ## LICENSE
+
+    Free to use and modify for your healthcare practice.
+    Built with ❤️ for healthcare professionals.
+
+    ==========================================
+    -->
+</body>
+</html>
