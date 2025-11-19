@@ -997,11 +997,10 @@
                 'application/msword': '.doc'
             },
             API_ENDPOINT: 'https://api.anthropic.com/v1/messages',
-            // OPTIONAL: Use a proxy server to avoid CORS issues
-            // Uncomment and set your proxy URL if needed:
-            // PROXY_ENDPOINT: 'http://localhost:3000/api/format',
-            // Or for deployed proxy: 'https://your-proxy.vercel.app/api/format'
-            PROXY_ENDPOINT: null,
+            // Using Netlify Functions to avoid CORS issues
+            // This works automatically when deployed to Netlify
+            // For local development, you can set to null to use direct API calls
+            PROXY_ENDPOINT: '/.netlify/functions/format',
             MODEL: 'claude-sonnet-4-20250514',
             MAX_TOKENS: 4000,
             SYSTEM_PROMPT: `You are a knowledge base formatter for AI voice agents in healthcare. Transform raw documents into clean, structured markdown optimized for voice AI retrieval.

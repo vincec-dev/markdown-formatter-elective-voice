@@ -1,0 +1,24 @@
+# Netlify configuration for Healthcare Document Formatter
+
+[build]
+  # No build command needed for static site
+  publish = "."
+
+[functions]
+  # Directory for serverless functions
+  directory = "netlify/functions"
+
+# Redirect rules (optional)
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# Headers for static files
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

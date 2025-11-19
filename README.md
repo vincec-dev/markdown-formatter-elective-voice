@@ -46,11 +46,23 @@ This tool helps healthcare businesses format their documents (PDF, Word, TXT) in
    - Click Save
    - Your app will be live at: `https://username.github.io/repo-name/`
 
-### Option 3: Deploy to Netlify
+### Option 3: Deploy to Netlify (Recommended - No CORS Issues!)
+
+**✅ This repository includes Netlify Functions to automatically bypass CORS restrictions!**
 
 1. Create a free account at [netlify.com](https://netlify.com)
-2. Drag and drop the `index.html` file
-3. Instant deployment! ✨
+2. **Option A - Connect to GitHub (Best)**:
+   - New site from Git → Connect to GitHub
+   - Select this repository
+   - Netlify auto-detects `netlify.toml` and deploys everything
+   - Functions are automatically deployed! 🎉
+
+3. **Option B - Manual Upload**:
+   - Drag and drop the **entire project folder** (not just index.html)
+   - Netlify detects `netlify.toml` and enables functions
+   - Done! ✨
+
+**Note**: The app is pre-configured to use Netlify Functions (`/.netlify/functions/format`) which eliminates CORS errors automatically when deployed to Netlify.
 
 ## 🔑 Getting Your API Key
 
@@ -175,6 +187,8 @@ Most healthcare documents cost less than $0.05 to format.
 **Problem**: You're getting "Network error. Please check your internet connection" or CORS-related errors when trying to format documents.
 
 **Root Cause**: Browser security policies (CORS - Cross-Origin Resource Sharing) may block direct API calls to Anthropic from certain domains or configurations.
+
+**✅ EASIEST FIX FOR NETLIFY USERS**: This repository now includes Netlify Functions! Simply redeploy your site (connect to GitHub repo or upload the entire project folder) and it will work automatically. The app is pre-configured to use `/.netlify/functions/format` which bypasses CORS.
 
 **Diagnostic Steps**:
 1. Open browser console (Press F12, go to Console tab)
