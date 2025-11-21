@@ -29,7 +29,16 @@
         }
 
         :root {
-            /* Premium Color Palette */
+            /* Transitions */
+            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Light Mode */
+        :root,
+        [data-theme="light"] {
+            /* Premium Color Palette - Light */
             --primary-color: #000000;
             --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --accent-color: #667eea;
@@ -44,18 +53,41 @@
             --error-color: #ef4444;
             --success-color: #10b981;
             --warning-color: #f59e0b;
+            --code-bg: #1a1a1a;
 
-            /* Shadows */
+            /* Shadows - Light */
             --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
             --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
             --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
 
-            /* Transitions */
-            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-            --transition: 300ms cubic-bezier(0.4, 0, 0.2, 1);
-            --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+        /* Dark Mode (Default) */
+        [data-theme="dark"] {
+            /* Premium Color Palette - Dark */
+            --primary-color: #ffffff;
+            --primary-gradient: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+            --accent-color: #8b5cf6;
+            --accent-hover: #a78bfa;
+            --background: #0a0a0a;
+            --background-alt: #171717;
+            --card-bg: #1a1a1a;
+            --text-primary: #f5f5f5;
+            --text-secondary: #a3a3a3;
+            --text-muted: #737373;
+            --border-color: #2a2a2a;
+            --error-color: #f87171;
+            --success-color: #34d399;
+            --warning-color: #fbbf24;
+            --code-bg: #0d0d0d;
+
+            /* Shadows - Dark */
+            --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.5);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -4px rgba(0, 0, 0, 0.6);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.7);
         }
 
         body {
@@ -67,6 +99,7 @@
             padding: 0;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            transition: background-color var(--transition), color var(--transition);
         }
 
         /* ==========================================
@@ -137,6 +170,34 @@
             border-color: var(--text-muted);
             box-shadow: var(--shadow-md);
             transform: translateY(-1px);
+        }
+
+        /* Theme Toggle Button */
+        .theme-toggle {
+            position: absolute;
+            top: 24px;
+            left: 24px;
+            background: var(--background);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px;
+            border-radius: 100px;
+            cursor: pointer;
+            font-size: 1.25rem;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .theme-toggle:hover {
+            background: var(--background-alt);
+            border-color: var(--text-muted);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px) rotate(20deg);
         }
 
         /* ==========================================
@@ -638,7 +699,7 @@
 
         .preview-raw pre {
             margin: 0;
-            background: #1a1a1a;
+            background: var(--code-bg);
             padding: 32px;
             border-radius: 16px;
             overflow-x: auto;
@@ -806,6 +867,14 @@
                 width: fit-content;
             }
 
+            .theme-toggle {
+                top: 16px;
+                left: 16px;
+                width: 40px;
+                height: 40px;
+                font-size: 1.1rem;
+            }
+
             .card {
                 padding: 28px;
                 border-radius: 20px;
@@ -962,6 +1031,9 @@
     <div class="container">
         <!-- Header -->
         <header style="position: relative;">
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+                <span id="themeIcon">🌙</span>
+            </button>
             <button class="settings-btn" onclick="openSettings()">⚙️ API Settings</button>
             <h1>Healthcare Document Formatter</h1>
             <p>Transform messy documents into clean, AI-optimized markdown</p>
@@ -1172,6 +1244,11 @@ Return ONLY the formatted markdown with no additional commentary.`
         function initializeApp() {
             // Configure PDF.js worker
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+            // Initialize theme (dark mode as default)
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
 
             // Load saved API key
             const savedKey = localStorage.getItem('anthropic_api_key');
@@ -1674,6 +1751,25 @@ ${text}`;
 
             // Scroll to alert
             alert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        /* ==========================================
+           THEME TOGGLE
+           ========================================== */
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        }
+
+        function updateThemeIcon(theme) {
+            const themeIcon = document.getElementById('themeIcon');
+            if (themeIcon) {
+                themeIcon.textContent = theme === 'dark' ? '🌙' : '☀️';
+            }
         }
 
         function handleBeforeUnload(e) {
